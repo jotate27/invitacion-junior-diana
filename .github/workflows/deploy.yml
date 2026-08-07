@@ -1,0 +1,26 @@
+name: Deploy to Coolify
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Coolify deployment
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+            "http://178.104.176.169:8000/api/v1/deploy?uuid=ov6x80wollcqziup926z22wc&force=true" \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --max-time 30)
+          echo "HTTP $response"
+          case "$response" in
+            200) echo "✓ Deploy encolado" ;;
+            429) echo "✓ Deploy ya en progreso (cola llena)" ;;
+            401|403) echo "✗ Auth inválida"; exit 1 ;;
+            404) echo "✗ UUID incorrecto"; exit 1 ;;
+            *) echo "⚠ Respuesta inesperada: $response — continuando" ;;
+          esac
