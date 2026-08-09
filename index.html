@@ -59,16 +59,16 @@
 
   <div style="width: min(100%, 560px); background: #F8F5F1; overflow: clip">
 
-    <section data-screen-label="Hero" style="position: relative; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 34px; padding: 96px 32px 72px; text-align: center">
-      <img src="assets/ramo-esquina.png" alt="" aria-hidden="true" style="position: absolute; top: 0; left: 0; width: 176px; opacity: .95; transform: none; pointer-events: none; z-index: 2">
-      <img src="assets/ramo-esquina.png" alt="" aria-hidden="true" style="position: absolute; bottom: 0; right: 0; width: 176px; opacity: .95; transform: rotate(180deg); pointer-events: none; z-index: 2">
-      <img src="assets/monograma.png" alt="Junior &amp; Diana" style="width: 92px; animation: fadeUp 1.4s cubic-bezier(.16,.84,.34,1) .1s both">
-      <div style="display: flex; flex-direction: column; align-items: center; gap: 18px; animation: fadeUp 1.4s cubic-bezier(.16,.84,.34,1) .35s both">
+    <section data-screen-label="Hero" style="position: relative; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; padding: 60px 32px 44px; text-align: center">
+      <img src="assets/ramo-esquina.png" alt="" aria-hidden="true" style="position: absolute; top: 0; left: 0; width: 150px; opacity: .95; transform: none; pointer-events: none; z-index: 2">
+      <img src="assets/ramo-esquina.png" alt="" aria-hidden="true" style="position: absolute; bottom: 0; right: 0; width: 150px; opacity: .95; transform: rotate(180deg); pointer-events: none; z-index: 2">
+      <img src="assets/monograma.png" alt="Junior &amp; Diana" style="width: 78px; animation: fadeUp 1.4s cubic-bezier(.16,.84,.34,1) .1s both">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 13px; animation: fadeUp 1.4s cubic-bezier(.16,.84,.34,1) .35s both">
         <p style="margin: 0; font-size: 10px; letter-spacing: .44em; text-transform: uppercase; color: #6C6C6C">Nuestra boda</p>
-        <h1 style="margin: 0; font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: clamp(44px, 13vw, 62px); line-height: 1.08; letter-spacing: .01em; color: #2D2D2D">Junior<span style="display: block; font-family: 'Playfair Display', serif; font-style: italic; font-size: .52em; color: #8E4A56; padding: 6px 0">&amp;</span>Diana</h1>
-        <span style="width: 1px; height: 40px; background: #8E4A56; opacity: .55"></span>
+        <h1 style="margin: 0; font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: clamp(44px, 13vw, 62px); line-height: 1.08; letter-spacing: .01em; color: #2D2D2D">Junior<span style="display: block; font-family: 'Playfair Display', serif; font-style: italic; font-size: .52em; color: #8E4A56; padding: 4px 0">&amp;</span>Diana</h1>
+        <span style="width: 1px; height: 28px; background: #8E4A56; opacity: .55"></span>
         <p style="margin: 0; font-family: 'Playfair Display', serif; font-size: 15px; letter-spacing: .16em; color: #5E2330">07 de noviembre de 2026</p>
-        <div style="display: flex; align-items: center; gap: 12px; margin-top: 6px; opacity: .5">
+        <div style="display: flex; align-items: center; gap: 12px; margin-top: 4px; opacity: .5">
           <svg viewBox="0 0 160 48" width="72" height="22" fill="none" stroke="#5E2330" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform: scaleX(-1)">
             <path d="M6 42C40 38 90 28 154 10"></path>
             <path d="M30 38c-1-7 4-12 10-13 1 7-4 12-10 13Z"></path>
@@ -95,7 +95,7 @@
           </svg>
         </div>
       </div>
-      <a href="#historia" style="margin-top: 8px; padding: 16px 38px; border: 1px solid rgba(45,45,45,.22); border-radius: 999px; font-size: 10px; letter-spacing: .34em; text-transform: uppercase; color: #2D2D2D; background: transparent; transition: background .5s ease, color .5s ease, border-color .5s ease, letter-spacing .5s ease; animation: fadeUp 1.4s cubic-bezier(.16,.84,.34,1) .6s both" style-hover="background: #5E2330; border-color: #5E2330; color: #F8F5F1; letter-spacing: .4em">Ver invitación</a>
+      <a href="#historia" style="margin-top: 6px; padding: 13px 38px; border: 1px solid rgba(45,45,45,.22); border-radius: 999px; font-size: 10px; letter-spacing: .34em; text-transform: uppercase; color: #2D2D2D; background: transparent; transition: background .5s ease, color .5s ease, border-color .5s ease, letter-spacing .5s ease; animation: fadeUp 1.4s cubic-bezier(.16,.84,.34,1) .6s both" style-hover="background: #5E2330; border-color: #5E2330; color: #F8F5F1; letter-spacing: .4em">Ver invitación</a>
     </section>
 
     <section id="historia" data-screen-label="Nuestra historia" style="position: relative; height: 118vh; height: 118dvh; min-height: 640px; overflow: hidden; background: #E7E2DA">
@@ -612,10 +612,22 @@ class Component extends DCLogic {
     if (tap) tap.style.display = 'none';
     const cerrar = () => this.entrar();
     const CORTE = Number(this.props.cortaVideoEn ?? 6.1);
+    // El póster se queda nítido y opaco hasta que el video tiene un frame
+    // real listo para pintar (evento 'playing'); recién ahí se hace un
+    // crossfade corto. Así el sello nunca se ve "en blanco" entre el tap
+    // y la apertura del sobre.
+    let coverOculto = false;
+    const ocultarCover = () => {
+      if (coverOculto || !cover) return;
+      coverOculto = true;
+      cover.style.transition = 'opacity .35s ease';
+      cover.style.opacity = '0';
+    };
     const empezarVideo = () => {
       setTimeout(() => this.setState({ abriendo: true }), 2000);
-      if (!v) { cerrar(); return; }
+      if (!v) { ocultarCover(); cerrar(); return; }
       try { v.currentTime = 0; v.playbackRate = 0.6; } catch (e) {}
+      v.addEventListener('playing', ocultarCover, { once: true });
       v.addEventListener('ended', cerrar, { once: true });
       const vigilar = () => {
         if (this._entrado) return;
@@ -623,18 +635,14 @@ class Component extends DCLogic {
         requestAnimationFrame(vigilar);
       };
       const p = v.play();
-      if (p && p.catch) p.catch(() => cerrar());
+      if (p && p.catch) p.catch(() => { ocultarCover(); cerrar(); });
       requestAnimationFrame(vigilar);
+      // Si el video nunca dispara 'playing' (red lenta, error silencioso),
+      // no dejamos al usuario mirando el sello congelado.
+      setTimeout(ocultarCover, 1200);
       this._fallback = setTimeout(cerrar, 9000);
     };
-    if (cover) {
-      cover.style.transition = 'opacity .9s ease, filter .9s ease';
-      cover.style.opacity = '0';
-      cover.style.filter = 'blur(16px)';
-      setTimeout(empezarVideo, 120);
-    } else {
-      empezarVideo();
-    }
+    empezarVideo();
   };
 
   entrar() {
