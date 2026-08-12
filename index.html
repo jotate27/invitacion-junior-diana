@@ -568,27 +568,22 @@ class Component extends DCLogic {
     // en buffer justo donde mas se nota. Al primer contacto con el sello
     // (pointerdown llega ~100ms antes que click) se fuerza la descarga, y de
     // paso se hunde el sello para que el gesto tenga respuesta inmediata.
+    // Adelantar la descarga del mp4, con el propio elemento como unico que la
+    // hace. Antes esto era un fetch() del archivo completo en paralelo: el
+    // media loader no reusa esa entrada de cache para sus range requests, asi
+    // que el video se bajaba dos veces (medido en produccion: 2.153.404 bytes
+    // por el fetch + 1.860.430 por el video, ~4 MB para un archivo de 2,1 MB).
+    // En movil eso pisaba la carga de la pagina y dejaba al video sin ancho de
+    // banda, con una espera visible entre el toque y la apertura.
+    // Subir preload de metadata a auto encarga esa misma descarga al elemento,
+    // una sola vez y por el camino que si aprovecha. El fetch existia porque
+    // iOS Safari degrada preload="auto" a metadata; con el mp4 ya en faststart
+    // eso dejo de importar: el moov llega en la primera respuesta, que es lo
+    // que el fetch intentaba conseguir a la fuerza.
     const precalentar = () => {
       if (this._precalentado) return;
       this._precalentado = true;
-      // iOS Safari degrada preload="auto" a metadata, asi que el mp4 no queda
-      // realmente en buffer justo donde mas se nota. Un fetch normal si llena
-      // la cache HTTP, y luego play() sale de ahi al instante.
-      // El cuerpo hay que consumirlo: una Response que nadie lee deja la
-      // descarga a medias y nunca llega a poblar la cache, que es justo para
-      // lo unico que se pide. Sin leerla solo se robaba ancho de banda al
-      // video, que es quien de verdad lo necesita.
-      try {
-        if (typeof fetch === 'function') {
-          fetch('assets/apertura-v2.mp4', { credentials: 'same-origin' })
-            .then((r) => r.blob())
-            .catch(() => {});
-        }
-      } catch (e) {}
-      // load() reinicia el elemento por completo. Si el sello ya se toco, el
-      // play() de abrirSobre puede estar en vuelo y load() lo tumba con
-      // AbortError, lo que se veia como una apertura sin ninguna animacion.
-      if (!this._abriendo) { try { v.load(); } catch (e) {} }
+      try { v.preload = 'auto'; } catch (e) {}
     };
 
     // Se lanza tras el primer pintado para no competir con las fuentes y el
