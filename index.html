@@ -552,7 +552,7 @@
   </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:430,&quot;height&quot;:932},&quot;fechaBoda&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;2026-11-07T19:00:00&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Datos&quot;},&quot;whatsapp&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;51999888777&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Datos&quot;},&quot;musicaSrc&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;assets/musica.mp3&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Música&quot;},&quot;cortaVideoEn&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:4.35,&quot;min&quot;:1.5,&quot;max&quot;:9,&quot;step&quot;:0.1,&quot;unit&quot;:&quot;s&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Apertura del sobre&quot;},&quot;invitadoNombre&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Nombre del invitado&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Invitado&quot;},&quot;invitadoPases&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:2,&quot;min&quot;:1,&quot;max&quot;:2,&quot;step&quot;:1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Invitado&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:430,&quot;height&quot;:932},&quot;fechaBoda&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;2026-11-07T19:00:00&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Datos&quot;},&quot;whatsapp&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;51926981215&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Datos&quot;},&quot;musicaSrc&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;assets/musica.mp3&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Música&quot;},&quot;cortaVideoEn&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:4.35,&quot;min&quot;:1.5,&quot;max&quot;:9,&quot;step&quot;:0.1,&quot;unit&quot;:&quot;s&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Apertura del sobre&quot;},&quot;invitadoNombre&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Nombre del invitado&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Invitado&quot;},&quot;invitadoPases&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:2,&quot;min&quot;:1,&quot;max&quot;:2,&quot;step&quot;:1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Invitado&quot;}}">
 class Component extends DCLogic {
   state = { now: Date.now(), musicOn: false, vol: 42, volAbierto: false, regalos: false, rsvp: { nombre: '', pax: '1', mensaje: '' }, abriendo: false, saliendo: false, entrado: false };
 
@@ -566,7 +566,7 @@ class Component extends DCLogic {
     // Precarga el select de asistencia con la cantidad de pases del invitado,
     // y el nombre con el que ya viene en el link: la invitacion sabe a quien
     // esta saludando, pedirselo de nuevo sobra.
-    const pasesInv = Math.min(2, Math.max(1, Number(this.props.invitadoPases ?? 2)));
+    const pasesInv = Math.min(2, Math.max(1, Number(this.props.invitadoPases || 2)));
     let nombreInv = '';
     try { nombreInv = new URLSearchParams(location.search).get('n') || ''; } catch (e) {}
     this.setState((s) => ({ rsvp: Object.assign({}, s.rsvp, { pax: String(pasesInv), nombre: nombreInv }) }));
@@ -847,7 +847,7 @@ class Component extends DCLogic {
     const tap = document.getElementById('sobre-tap');
     const box = document.getElementById('sobre-box');
     const cerrar = () => this.entrar();
-    const CORTE = Number(this.props.cortaVideoEn ?? 3.2);
+    const CORTE = Number(this.props.cortaVideoEn || 3.2);
 
     // ---- Acuse del gesto, en el mismo frame del toque ----
     // Antes no cambiaba un solo pixel hasta que el video disparaba 'playing'
@@ -972,13 +972,13 @@ class Component extends DCLogic {
   };
 
   renderVals() {
-    const target = new Date(this.props.fechaBoda ?? '2026-11-07T19:00:00').getTime();
+    const target = new Date(this.props.fechaBoda || '2026-11-07T19:00:00').getTime();
     const diff = Math.max(0, target - this.state.now);
     const s = Math.floor(diff / 1000);
     const pad = (n) => String(n).padStart(2, '0');
     const r = this.state.rsvp;
-    const tel = String(this.props.whatsapp ?? '51999888777').replace(/[^0-9]/g, '');
-    const pases = Number(new URLSearchParams(location.search).get('p')) || Number(this.props.invitadoPases ?? 2);
+    const tel = String(this.props.whatsapp || '51926981215').replace(/[^0-9]/g, '');
+    const pases = Number(new URLSearchParams(location.search).get('p')) || Number(this.props.invitadoPases || 2);
     const noAsiste = r.pax === 'no';
     const asistText = r.pax === '1' ? '1 pase' : r.pax + ' pases';
     const msg = (noAsiste
