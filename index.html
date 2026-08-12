@@ -121,15 +121,37 @@
   .rule::before, .rule::after { content: ''; height: 1px; width: clamp(38px, 13vw, 74px); background: currentColor; opacity: .38; }
   .rule > .lozenge { width: 5px; height: 5px; flex: none; transform: rotate(45deg); background: currentColor; opacity: .62; }
 
-  /* El sello responde al toque en el mismo frame: hunde y suelta. */
-  #sobre-tap { transition: transform 160ms var(--ease-out); }
-  #sobre-tap:active { transform: translate(-50%, -50%) scale(.94); }
   /* El anillo solo para navegacion por teclado. Con :focus normal quedaba un
      circulo dibujado sobre el sello despues del clic, durante toda la apertura. */
   #sobre-tap:focus { outline: none; }
   #sobre-tap:focus-visible { outline: 1px solid rgba(94,35,48,.7); outline-offset: 8px; }
-  #sobre-box.is-opening #sobre-cover { transform: scale(1.055); transition: transform 3.4s cubic-bezier(.22,.61,.36,1), opacity .45s ease; }
-  #sobre-box.is-opening #sobre-video { transform: scale(1.02); transition: transform 3.4s cubic-bezier(.22,.61,.36,1); }
+
+  /* --- Respuesta al toque del sello ---
+     Antes esto era un :active con scale sobre #sobre-tap, que es un boton
+     transparente y vacio encima del lacre: escalarlo no movia un pixel. El
+     toque no tenia ninguna respuesta propia.
+     Clonar el lacre en un circulo y hundirlo solo a el tampoco sirve: el lacre
+     ocupa ~60% del ancho del encuadre, su canto cae sobre la diagonal del sobre
+     y al hundirse se ve la costura contra el papel de abajo.
+     Lo que si funciona es contraer la portada entera con el origen clavado en
+     el sello (lo fija posicionarSello, que ya calcula ese punto). Todo converge
+     hacia donde esta el dedo, no hay ningun borde que delate el truco, y se lee
+     como presion sobre la cera.
+     El reposo en 1.03 es lo que deja sitio para contraer a 1.0 sin destapar los
+     bordes del encuadre. */
+  #sobre-cover, #sobre-video { transform: scale(1.03); }
+  #sobre-box.is-press #sobre-cover, #sobre-box.is-press #sobre-video {
+    transform: scale(1);
+    transition: transform 100ms cubic-bezier(.4,0,1,1);
+  }
+  #sobre-box.is-release #sobre-cover, #sobre-box.is-release #sobre-video {
+    transform: scale(1.03);
+    transition: transform 480ms cubic-bezier(.18,1.4,.4,1);
+  }
+  /* is-opening va al final a proposito: una vez arrancada la apertura manda
+     ella, y el rebote del soltado se absorbe en el zoom largo. */
+  #sobre-box.is-opening #sobre-cover { transform: scale(1.09); transition: transform 3.4s cubic-bezier(.22,.61,.36,1), opacity .45s ease; }
+  #sobre-box.is-opening #sobre-video { transform: scale(1.05); transition: transform 3.4s cubic-bezier(.22,.61,.36,1); }
 
 
   @keyframes monoIn { from { transform: scale(.985); } to { transform: none; } }
@@ -150,7 +172,11 @@
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-    #sobre-box.is-opening #sobre-cover, #sobre-box.is-opening #sobre-video { transform: none; }
+    /* Sin movimiento: portada y video se quedan quietos en su escala de reposo,
+       ni presion ni zoom de apertura. */
+    #sobre-box.is-opening #sobre-cover, #sobre-box.is-opening #sobre-video,
+    #sobre-box.is-press #sobre-cover, #sobre-box.is-press #sobre-video,
+    #sobre-box.is-release #sobre-cover, #sobre-box.is-release #sobre-video { transform: scale(1.03); }
     [data-hito] { opacity: 1; transform: none; }
     [data-linea] { transform: scaleY(1); }
   }
@@ -162,7 +188,7 @@
   <sc-if value="{{ mostrarSobre }}" hint-placeholder-val="{{ true }}">
   <div id="sobre" style="{{ sobreStyle }}">
     <div id="sobre-box" style="position: relative; width: min(100%, 560px); height: 100%; overflow: hidden; background: #F0EBE4">
-      <video id="sobre-video" src="assets/apertura.mp4" poster="assets/apertura-poster.jpg" muted="{{ true }}" playsInline="{{ true }}" preload="metadata" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 70%"></video>
+      <video id="sobre-video" src="assets/apertura-v2.mp4" poster="assets/apertura-poster.jpg" muted="{{ true }}" playsInline="{{ true }}" preload="metadata" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 70%"></video>
       <img id="sobre-cover" src="assets/apertura-poster.jpg" alt="" fetchpriority="high" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 70%; z-index: 1; transform-origin: 50% 56%">
       <button id="sobre-tap" type="button" onClick="{{ abrirSobre }}" aria-label="Abrir la invitación" style="position: absolute; left: 48.2%; top: 55.6%; width: min(48vw, 210px); height: min(48vw, 210px); transform: translate(-50%,-50%); border: none; border-radius: 50%; background: transparent; cursor: pointer; z-index: 4; -webkit-tap-highlight-color: transparent; touch-action: manipulation; outline: none"></button>
       <div id="sobre-guest" style="{{ guestStyle }}">
@@ -529,6 +555,9 @@ class Component extends DCLogic {
   prepararSobre() {
     const v = document.getElementById('sobre-video');
     if (!v) return;
+    // Ya, con las medidas nominales: el sello y el origen de la presion tienen
+    // que estar en su sitio antes de que llegue el metadata del video.
+    this.posicionarSello();
     const poner = () => { try { v.currentTime = 0; v.pause(); } catch (e) {} this.posicionarSello(); };
     if (v.readyState >= 1) poner();
     v.addEventListener('loadedmetadata', poner, { once: true });
@@ -545,12 +574,21 @@ class Component extends DCLogic {
       // iOS Safari degrada preload="auto" a metadata, asi que el mp4 no queda
       // realmente en buffer justo donde mas se nota. Un fetch normal si llena
       // la cache HTTP, y luego play() sale de ahi al instante.
+      // El cuerpo hay que consumirlo: una Response que nadie lee deja la
+      // descarga a medias y nunca llega a poblar la cache, que es justo para
+      // lo unico que se pide. Sin leerla solo se robaba ancho de banda al
+      // video, que es quien de verdad lo necesita.
       try {
         if (typeof fetch === 'function') {
-          fetch('assets/apertura.mp4', { credentials: 'same-origin' }).catch(() => {});
+          fetch('assets/apertura-v2.mp4', { credentials: 'same-origin' })
+            .then((r) => r.blob())
+            .catch(() => {});
         }
       } catch (e) {}
-      try { v.load(); } catch (e) {}
+      // load() reinicia el elemento por completo. Si el sello ya se toco, el
+      // play() de abrirSobre puede estar en vuelo y load() lo tumba con
+      // AbortError, lo que se veia como una apertura sin ninguna animacion.
+      if (!this._abriendo) { try { v.load(); } catch (e) {} }
     };
 
     // Se lanza tras el primer pintado para no competir con las fuentes y el
@@ -566,6 +604,28 @@ class Component extends DCLogic {
       tap.addEventListener('pointerdown', precalentar);
       tap.addEventListener('touchstart', precalentar, { passive: true });
       tap.addEventListener('mouseenter', precalentar);
+
+      // La presion se pinta al contacto, no al click: pointerdown llega antes
+      // de que el dedo se levante. Se hace con clases desde JS y no con :active
+      // porque en iOS :active no dispara en elementos que no son enlaces.
+      const presionar = () => {
+        if (this._abriendo) return;
+        this.marcarBox('is-release', false);
+        this.marcarBox('is-press', true);
+      };
+      const soltar = () => {
+        if (this._abriendo) return;
+        this.marcarBox('is-press', false);
+        this.marcarBox('is-release', true);
+      };
+      tap.addEventListener('pointerdown', presionar);
+      tap.addEventListener('pointerup', soltar);
+      tap.addEventListener('pointercancel', soltar);
+      tap.addEventListener('pointerleave', soltar);
+      // Respaldo para Safari sin Pointer Events. Repetir la clase no molesta.
+      tap.addEventListener('touchstart', presionar, { passive: true });
+      tap.addEventListener('touchend', soltar);
+      tap.addEventListener('touchcancel', soltar);
     }
   }
 
@@ -574,14 +634,18 @@ class Component extends DCLogic {
   }
 
   // Fracción del cuadro del video (no de la pantalla) donde está el sello, calculada una vez a partir del ajuste original.
+  // Se resuelve con las medidas nominales cuando el video todavía no cargó, para
+  // que el punto exista desde el primer frame: el invitado puede tocar el sello
+  // antes de que llegue el metadata, y sin punto la presión se iría al centro.
   posicionarSello = () => {
     const v = document.getElementById('sobre-video');
     const box = document.getElementById('sobre-box');
     const tap = document.getElementById('sobre-tap');
-    if (!v || !box || !tap || !v.videoWidth || !v.videoHeight) return;
+    const cover = document.getElementById('sobre-cover');
+    if (!box || !tap) return;
     const bw = box.clientWidth, bh = box.clientHeight;
     if (!bw || !bh) return;
-    const vw = v.videoWidth, vh = v.videoHeight;
+    const vw = (v && v.videoWidth) || 1440, vh = (v && v.videoHeight) || 2144;
     const SEAL_X = 0.482, SEAL_Y = 0.556;
     const scale = Math.max(bw / vw, bh / vh);
     const rw = vw * scale, rh = vh * scale;
@@ -589,8 +653,24 @@ class Component extends DCLogic {
     const cropTop = (rh - bh) * 0.7;
     const x = SEAL_X * rw - cropLeft;
     const y = SEAL_Y * rh - cropTop;
-    tap.style.left = (x / bw * 100).toFixed(2) + '%';
-    tap.style.top = (y / bh * 100).toFixed(2) + '%';
+    const px = (x / bw * 100).toFixed(2) + '%';
+    const py = (y / bh * 100).toFixed(2) + '%';
+    tap.style.left = px;
+    tap.style.top = py;
+    // El mismo punto es el origen de la presión: la portada se contrae hacia el
+    // lacre, no hacia el centro del encuadre.
+    const origen = px + ' ' + py;
+    if (cover) cover.style.transformOrigin = origen;
+    if (v) v.style.transformOrigin = origen;
+  };
+
+  // className a mano en vez de classList: es lo que ya usa el resto del sobre.
+  marcarBox = (clase, on) => {
+    const box = document.getElementById('sobre-box');
+    if (!box) return;
+    const partes = (box.className || '').split(' ').filter((c) => c && c !== clase);
+    if (on) partes.push(clase);
+    box.className = partes.join(' ');
   };
 
   setupAudio() {
@@ -764,8 +844,19 @@ class Component extends DCLogic {
     }, { once: true });
     v.addEventListener('ended', cerrar, { once: true });
 
-    const p = v.play();
-    if (p && p.catch) p.catch(() => { ocultarCover(); cerrar(); });
+    // play() puede rechazarse con AbortError si quedaba un load() en vuelo
+    // (el precalentado del sello llega ~100ms antes). Eso es recuperable, asi
+    // que se reintenta una vez: antes cualquier rechazo saltaba directo a la
+    // invitacion y la apertura no se veia nunca.
+    const arrancar = (reintentar) => {
+      const p = v.play();
+      if (p && p.catch) p.catch(() => {
+        if (reintentar) { setTimeout(() => arrancar(false), 140); return; }
+        ocultarCover();
+        cerrar();
+      });
+    };
+    arrancar(true);
 
     // Si el video no llega a pintar en 8s (red muy mala o error silencioso),
     // se entra igual. El poster sigue con su zoom, asi que no se ve roto.
