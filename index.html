@@ -553,6 +553,36 @@
 
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:430,&quot;height&quot;:932},&quot;fechaBoda&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;2026-11-07T19:00:00&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Datos&quot;},&quot;whatsapp&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;51926981215&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Datos&quot;},&quot;musicaSrc&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;assets/musica.mp3&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Música&quot;},&quot;cortaVideoEn&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:4.35,&quot;min&quot;:1.5,&quot;max&quot;:9,&quot;step&quot;:0.1,&quot;unit&quot;:&quot;s&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Apertura del sobre&quot;},&quot;invitadoNombre&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Nombre del invitado&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Invitado&quot;},&quot;invitadoPases&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:2,&quot;min&quot;:1,&quot;max&quot;:2,&quot;step&quot;:1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Invitado&quot;}}">
+// <<<RSVP_MSG_START>>>
+// Pura a proposito: sin this, sin DOM, sin runtime. Los marcadores de arriba y
+// abajo son como la extrae scripts/test-mensaje-rsvp.mjs del repo del dashboard,
+// asi se prueba el codigo que realmente se despliega y no una copia.
+//
+// Sin emoji: WhatsApp Web en Mac renderiza como interrogante los emoji que
+// vienen prellenados por URL. Sin saltos duros dentro de una frase: WhatsApp
+// ajusta solo, y romper a mano se ve mal en pantallas de otro ancho.
+function construirMensajeRSVP(d) {
+  var nombre = String(d.nombre || '').trim();
+  var mensaje = String(d.mensaje || '').trim();
+  var personas = Number(d.personas) || 0;
+  var partes = [];
+  if (d.respuesta === 'No') {
+    partes.push('Junior y Diana,');
+    partes.push('Les agradezco muchísimo la invitación. Esta vez no voy a poder acompañarlos el 7 de noviembre.');
+    partes.push('Soy *' + nombre + '*.');
+  } else {
+    partes.push('Junior y Diana, ¡qué alegría!');
+    partes.push('Confirmo mi asistencia a su boda del sábado 7 de noviembre.');
+    // "asistire" y no "voy solo/sola": el genero del invitado no se conoce.
+    partes.push(personas > 1
+      ? 'Soy *' + nombre + '* y asistiremos ' + personas + ' personas.'
+      : 'Soy *' + nombre + '* y asistiré.');
+  }
+  if (mensaje) partes.push('"' + mensaje + '"');
+  return partes.join('\n\n');
+}
+// <<<RSVP_MSG_END>>>
+
 class Component extends DCLogic {
   state = { now: Date.now(), musicOn: false, vol: 42, volAbierto: false, regalos: false, rsvp: { nombre: '', pax: '1', mensaje: '' }, abriendo: false, saliendo: false, entrado: false };
 
@@ -980,11 +1010,9 @@ class Component extends DCLogic {
     const tel = String(this.props.whatsapp || '51926981215').replace(/[^0-9]/g, '');
     const pases = Number(new URLSearchParams(location.search).get('p')) || Number(this.props.invitadoPases || 2);
     const noAsiste = r.pax === 'no';
-    const asistText = r.pax === '1' ? '1 pase' : r.pax + ' pases';
-    const msg = (noAsiste
-      ? 'Junior y Diana, gracias por la invitación. Lamento informarles que no podré asistir a su boda.'
-      : 'Junior y Diana, confirmo mi asistencia a su boda.'
-    ) + '\n\nNombre: ' + (r.nombre || '—') + (noAsiste ? '' : '\nAsistentes: ' + asistText) + (r.mensaje ? '\nMensaje: ' + r.mensaje : '');
+    const respuesta = noAsiste ? 'No' : 'Si';
+    const personas = noAsiste ? 0 : (Number(r.pax) || 1);
+    const msg = construirMensajeRSVP({ nombre: r.nombre, respuesta: respuesta, personas: personas, mensaje: r.mensaje });
     const ctaLabel = noAsiste ? 'Enviar respuesta' : 'Confirmar asistencia';
     const abriendo = this.state.abriendo, saliendo = this.state.saliendo;
     return {
