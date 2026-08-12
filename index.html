@@ -19,7 +19,7 @@
 <link rel="preload" as="font" type="font/woff2" href="fonts/cormorant-300-latin.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="fonts/pinyon-latin.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="fonts/jost-latin.woff2" crossorigin>
-<link rel="preload" as="image" href="assets/apertura-poster.jpg" fetchpriority="high">
+<link rel="preload" as="image" href="assets/apertura-poster-v3.jpg" fetchpriority="high">
 <!-- Los mapas se piden bastante antes de verse; el handshake con Google
      se adelanta para que al llegar no se pague DNS + TLS. -->
 <link rel="preconnect" href="https://www.google.com" crossorigin>
@@ -213,8 +213,8 @@
   <sc-if value="{{ mostrarSobre }}" hint-placeholder-val="{{ true }}">
   <div id="sobre" style="{{ sobreStyle }}">
     <div id="sobre-box" style="position: relative; width: min(100%, 560px); height: 100%; overflow: hidden; background: #F0EBE4">
-      <video id="sobre-video" src="assets/apertura-v2.mp4" poster="assets/apertura-poster.jpg" muted="{{ true }}" playsInline="{{ true }}" preload="metadata" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 70%"></video>
-      <img id="sobre-cover" src="assets/apertura-poster.jpg" alt="" fetchpriority="high" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 70%; z-index: 1; transform-origin: 50% 56%">
+      <video id="sobre-video" src="assets/apertura-v3.mp4" poster="assets/apertura-poster-v3.jpg" muted="{{ true }}" playsInline="{{ true }}" preload="metadata" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 70%"></video>
+      <img id="sobre-cover" src="assets/apertura-poster-v3.jpg" alt="" fetchpriority="high" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 70%; z-index: 1; transform-origin: 50% 56%">
       <div id="sobre-lavado" aria-hidden="true"></div>
       <button id="sobre-tap" type="button" onClick="{{ abrirSobre }}" aria-label="Abrir la invitación" style="position: absolute; left: 48.2%; top: 55.6%; width: min(48vw, 210px); height: min(48vw, 210px); transform: translate(-50%,-50%); border: none; border-radius: 50%; background: transparent; cursor: pointer; z-index: 4; -webkit-tap-highlight-color: transparent; touch-action: manipulation; outline: none"></button>
       <div id="sobre-guest" style="{{ guestStyle }}">
@@ -545,7 +545,7 @@
   </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:430,&quot;height&quot;:932},&quot;fechaBoda&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;2026-11-07T19:00:00&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Datos&quot;},&quot;whatsapp&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;51999888777&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Datos&quot;},&quot;musicaSrc&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;assets/musica.mp3&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Música&quot;},&quot;cortaVideoEn&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:3,&quot;min&quot;:1.5,&quot;max&quot;:9,&quot;step&quot;:0.1,&quot;unit&quot;:&quot;s&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Apertura del sobre&quot;},&quot;invitadoNombre&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Nombre del invitado&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Invitado&quot;},&quot;invitadoPases&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:2,&quot;min&quot;:1,&quot;max&quot;:2,&quot;step&quot;:1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Invitado&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:430,&quot;height&quot;:932},&quot;fechaBoda&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;2026-11-07T19:00:00&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Datos&quot;},&quot;whatsapp&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;51999888777&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Datos&quot;},&quot;musicaSrc&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;assets/musica.mp3&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Música&quot;},&quot;cortaVideoEn&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:4.35,&quot;min&quot;:1.5,&quot;max&quot;:9,&quot;step&quot;:0.1,&quot;unit&quot;:&quot;s&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Apertura del sobre&quot;},&quot;invitadoNombre&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Nombre del invitado&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Invitado&quot;},&quot;invitadoPases&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:2,&quot;min&quot;:1,&quot;max&quot;:2,&quot;step&quot;:1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Invitado&quot;}}">
 class Component extends DCLogic {
   state = { now: Date.now(), musicOn: false, vol: 42, volAbierto: false, regalos: false, rsvp: { nombre: '', pax: '1', mensaje: '' }, abriendo: false, saliendo: false, entrado: false };
 
@@ -690,7 +690,7 @@ class Component extends DCLogic {
     const bw = box.clientWidth, bh = box.clientHeight;
     if (!bw || !bh) return;
     const vw = (v && v.videoWidth) || 1440, vh = (v && v.videoHeight) || 2144;
-    const SEAL_X = 0.482, SEAL_Y = 0.556;
+    const SEAL_X = 0.482, SEAL_Y = 0.515;
     const scale = Math.max(bw / vw, bh / vh);
     const rw = vw * scale, rh = vh * scale;
     const cropLeft = (rw - bw) * 0.5;
@@ -883,7 +883,7 @@ class Component extends DCLogic {
       // navegador, y la duracion se calcula como lo que falte para llegar a
       // LAVADO_FIN: si el video llega tarde a este punto, el lavado se acorta
       // en vez de dejar asomar la portada vieja.
-      const LAVADO_INICIO = 2.35, LAVADO_FIN = 2.85;
+      const LAVADO_INICIO = 4.1, LAVADO_FIN = 4.28;
       const lavar = () => {
         if (this._lavando) return;
         this._lavando = true;
