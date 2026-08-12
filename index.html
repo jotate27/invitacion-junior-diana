@@ -20,6 +20,11 @@
 <link rel="preload" as="font" type="font/woff2" href="fonts/pinyon-latin.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="fonts/jost-latin.woff2" crossorigin>
 <link rel="preload" as="image" href="assets/apertura-poster.jpg" fetchpriority="high">
+<!-- Los mapas se piden bastante antes de verse; el handshake con Google
+     se adelanta para que al llegar no se pague DNS + TLS. -->
+<link rel="preconnect" href="https://www.google.com" crossorigin>
+<link rel="preconnect" href="https://maps.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://maps.googleapis.com" crossorigin>
 <style>
 /* Cormorant Garamond  serif ligera de alto contraste. Se llego aqui despues de
    descartar Marcellus (el usuario: "parece una diapositiva") y Bodoni Moda
@@ -154,7 +159,9 @@
   #sobre-box.is-opening #sobre-video { transform: scale(1.05); transition: transform 3.4s cubic-bezier(.22,.61,.36,1); }
 
 
-  @keyframes monoIn { from { transform: scale(.985); } to { transform: none; } }
+  /* Arranca por encima de 1, nunca por debajo: es un overlay fixed a pantalla
+     completa y encogerlo destapaba la invitacion por los cuatro bordes. */
+  @keyframes monoIn { from { transform: scale(1.015); } to { transform: none; } }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
   @keyframes softPulse { 0%,100% { opacity: .45; transform: translateY(0); } 50% { opacity: 1; transform: translateY(6px); } }
 
@@ -221,7 +228,7 @@
 
     <section id="historia" data-screen-label="Nuestra historia" style="position: relative; height: 118vh; height: 118dvh; min-height: 640px; overflow: hidden; background: #E7E2DA">
       <div id="historia-foto" style="position: absolute; inset: -8% 0; will-change: transform">
-        <img src="assets/hero.jpg" alt="Junior y Diana, frente con frente, sosteniendo una rosa" style="display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(.94) contrast(1.02)">
+        <img loading="lazy" decoding="async" src="assets/hero.jpg" alt="Junior y Diana, frente con frente, sosteniendo una rosa" style="display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(.94) contrast(1.02)">
       </div>
       <!-- Un solo velo, y solo donde va el texto. Dos apilados dejaban la foto gris. -->
       <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(24,20,17,.12) 0%, rgba(24,20,17,0) 30%, rgba(24,20,17,.44) 66%, rgba(24,20,17,.76) 100%)"></div>
@@ -237,7 +244,7 @@
            asimetrica y ademas competia con el monograma. Se sustituye por un
            fleuron de voluta simetrico, dibujado como mitad + espejo. -->
       <div data-reveal="" style="display: flex; flex-direction: column; align-items: center; gap: 26px; margin-bottom: 40px">
-        <img src="assets/monograma-claro.png" alt="" style="width: 62px; opacity: .95">
+        <img loading="lazy" decoding="async" src="assets/monograma-claro.png" alt="" style="width: 62px; opacity: .95">
         <svg viewBox="-110 -20 220 40" width="210" height="38" fill="none" stroke="rgba(248,245,241,.66)" stroke-width="1.5" stroke-linecap="round" aria-hidden="true" style="max-width: 62vw; height: auto">
           <g id="fleuron-a">
             <path d="M6 0 C 20 0 28 -7 40 -7 C 50 -7 56 -2 56 3 C 56 8 51 11 47 9 C 43 7 44 1 50 0 C 58 -1 66 2 78 0"></path>
@@ -279,7 +286,7 @@
           <p style="margin: 18px 0 0; font-family: var(--display); font-size: 21px; line-height: 1.4; color: #24201C">Iglesia Nuestra Señora de Guadalupe</p>
           <p style="margin: 8px 0 0; font-size: 15px; line-height: 1.6; color: #5E2330">Plaza de Armas de Sunampe S/N<br>Chincha, Ica</p>
           <div style="margin: 24px 0 0; overflow: hidden; background: #E7E2DA">
-            <iframe src="https://www.google.com/maps?q=Iglesia+Nuestra+Se%C3%B1ora+de+Guadalupe+Sunampe+Chincha+Ica&amp;output=embed" title="Mapa de la ceremonia" loading="lazy" referrerpolicy="no-referrer-when-downgrade" style="display: block; width: 100%; height: 190px; border: 0; filter: grayscale(1) contrast(.92) brightness(1.06)"></iframe>
+            <iframe data-mapa="https://www.google.com/maps?q=Iglesia+Nuestra+Se%C3%B1ora+de+Guadalupe+Sunampe+Chincha+Ica&amp;output=embed" title="Mapa de la ceremonia" referrerpolicy="no-referrer-when-downgrade" style="display: block; width: 100%; height: 190px; border: 0; filter: grayscale(1) contrast(.92) brightness(1.06)"></iframe>
           </div>
           <a class="sc" href="https://maps.google.com/?q=Iglesia+Nuestra+Se%C3%B1ora+de+Guadalupe+Sunampe+Chincha" target="_blank" rel="noopener" style="display: inline-block; margin-top: 24px; padding: 16px 32px; border: 1px solid rgba(94,35,48,.28); border-radius: 999px; font-size: 13px; letter-spacing: .17em; color: #24201C; transition: background .5s ease, color .5s ease, border-color .5s ease" style-hover="background: #5E2330; border-color: #5E2330; color: #F8F5F1">Ver ubicación</a>
         </div>
@@ -291,7 +298,7 @@
           <p style="margin: 18px 0 0; font-family: var(--display); font-size: 21px; line-height: 1.4; color: #24201C">Villa Lomo Largo</p>
           <p style="margin: 8px 0 0; font-size: 15px; line-height: 1.6; color: #5E2330">José Andrés Pachas 201, Sunampe<br>Chincha, Ica</p>
           <div style="margin: 24px 0 0; overflow: hidden; background: #E7E2DA">
-            <iframe src="https://www.google.com/maps?q=Villa+Lomo+Largo+Sunampe+Chincha&amp;output=embed" title="Mapa de la recepción" loading="lazy" referrerpolicy="no-referrer-when-downgrade" style="display: block; width: 100%; height: 190px; border: 0; filter: grayscale(1) contrast(.92) brightness(1.06)"></iframe>
+            <iframe data-mapa="https://www.google.com/maps?q=Villa+Lomo+Largo+Sunampe+Chincha&amp;output=embed" title="Mapa de la recepción" referrerpolicy="no-referrer-when-downgrade" style="display: block; width: 100%; height: 190px; border: 0; filter: grayscale(1) contrast(.92) brightness(1.06)"></iframe>
           </div>
           <a class="sc" href="https://maps.google.com/?q=Villa+Lomo+Largo+Sunampe+Chincha" target="_blank" rel="noopener" style="display: inline-block; margin-top: 24px; padding: 16px 32px; border: 1px solid rgba(94,35,48,.28); border-radius: 999px; font-size: 13px; letter-spacing: .17em; color: #24201C; transition: background .5s ease, color .5s ease, border-color .5s ease" style-hover="background: #5E2330; border-color: #5E2330; color: #F8F5F1">Ver ubicación</a>
         </div>
@@ -370,7 +377,7 @@
 
     <!-- Foto a mitad de la invitacion: respiro despues del cronograma, sin titulo ni marco. -->
     <section data-screen-label="Retrato" style="position: relative; background: #E7E2DA">
-      <img data-reveal="" src="assets/galeria-1.jpg" alt="Junior y Diana mirandose, con una rosa entre los dos" style="display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover">
+      <img loading="lazy" decoding="async" data-reveal="" src="assets/galeria-1.jpg" alt="Junior y Diana mirandose, con una rosa entre los dos" style="display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover">
       <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 42%; background: linear-gradient(to bottom, rgba(24,20,17,0), rgba(24,20,17,.6)); pointer-events: none"></div>
       <p class="sc" style="position: absolute; left: 0; right: 0; bottom: 30px; margin: 0; text-align: center; font-size: 13px; letter-spacing: .24em; color: rgba(248,245,241,.92); text-shadow: 0 1px 18px rgba(24,20,17,.6)">Chincha · 2026</p>
     </section>
@@ -379,7 +386,7 @@
       <p class="sc" data-reveal="" style="margin: 0 0 16px; font-size: 13px; letter-spacing: .17em; color: #5E2330">Código de vestimenta</p>
       <h2 data-reveal="" style="margin: 0 0 40px; font-family: var(--display); font-weight: 300; font-size: clamp(38px, 11vw, 50px); line-height: 1; color: #24201C">Formal</h2>
       <div data-reveal="" style="position: relative; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 46px">
-        <img src="assets/vestimenta-pareja-v2.png" alt="Ilustración de una pareja: él de traje negro con corbata, ella con vestido largo borgoña" width="500" height="547" style="display: block; width: min(268px, 76%); height: auto">
+        <img loading="lazy" decoding="async" src="assets/vestimenta-pareja-v2.png" alt="Ilustración de una pareja: él de traje negro con corbata, ella con vestido largo borgoña" width="500" height="547" style="display: block; width: min(268px, 76%); height: auto">
       </div>
       <p class="sc" data-reveal="" style="margin: 0 0 20px; font-size: 13px; letter-spacing: .17em; color: #5F564E">Paleta sugerida para vestidos</p>
       <div data-reveal="" style="display: flex; justify-content: center; gap: clamp(6px, 2.1vw, 12px); margin: 0 auto 52px">
@@ -441,8 +448,8 @@
            esta seccion la cierra, asi que el par funciona como un diptico.
            Mas chico y mas tenue que en la portada, para que lea como eco y no
            como repeticion. -->
-      <img src="assets/ramo-sup-v2.png" alt="" aria-hidden="true" width="620" height="803" style="position: absolute; top: -6px; left: -22px; width: clamp(118px, 34vw, 150px); height: auto; opacity: .5; pointer-events: none; z-index: 1">
-      <img src="assets/ramo-inf-v2.png" alt="" aria-hidden="true" width="620" height="676" style="position: absolute; bottom: -8px; right: -18px; width: clamp(104px, 30vw, 132px); height: auto; opacity: .42; pointer-events: none; z-index: 1">
+      <img loading="lazy" decoding="async" src="assets/ramo-sup-v2.png" alt="" aria-hidden="true" width="620" height="803" style="position: absolute; top: -6px; left: -22px; width: clamp(118px, 34vw, 150px); height: auto; opacity: .5; pointer-events: none; z-index: 1">
+      <img loading="lazy" decoding="async" src="assets/ramo-inf-v2.png" alt="" aria-hidden="true" width="620" height="676" style="position: absolute; bottom: -8px; right: -18px; width: clamp(104px, 30vw, 132px); height: auto; opacity: .42; pointer-events: none; z-index: 1">
       <h2 data-reveal="" style="margin: 0 0 18px; font-family: var(--display); font-weight: 300; font-size: clamp(30px, 8.5vw, 40px); line-height: 1.2; color: #24201C">Nos encantaría<br>contar contigo</h2>
       <p data-reveal="" style="margin: 0 auto 42px; max-width: 32ch; font-size: 16px; line-height: 1.75; color: #5F564E">Por favor confirmar antes del 07 de septiembre de 2026.</p>
       <div data-reveal="" style="max-width: 380px; margin: 0 auto; text-align: left; display: flex; flex-direction: column; gap: 26px">
@@ -476,13 +483,13 @@
            ancho: leia como nota al pie. Ahora va a sangre y recortado a 1:1;
            object-position 47% centra al grupo real (que no esta al centro
            geometrico) para que entren los cuatro sin cortar a los perros. -->
-      <img data-reveal="" src="assets/galeria-2.jpg" alt="Junior y Diana sentados con sus dos perros" style="display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; object-position: 47% 44%">
+      <img loading="lazy" decoding="async" data-reveal="" src="assets/galeria-2.jpg" alt="Junior y Diana sentados con sus dos perros" style="display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; object-position: 47% 44%">
       <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 55%; background: linear-gradient(to bottom, rgba(24,20,17,0), rgba(94,35,48,.35) 55%, #5E2330 100%); pointer-events: none"></div>
       <p data-reveal="" class="sc" style="position: absolute; left: 0; right: 0; bottom: 26px; margin: 0; text-align: center; font-size: 14px; letter-spacing: .26em; color: rgba(248,245,241,.95); text-shadow: 0 1px 20px rgba(24,20,17,.7)">Los cuatro los esperamos</p>
     </section>
 
     <footer data-screen-label="Cierre" style="padding: 76px 32px 88px; background: #5E2330; text-align: center">
-      <img data-reveal="" src="assets/monograma-claro.png" alt="Junior &amp; Diana" style="width: 88px; margin-bottom: 30px">
+      <img loading="lazy" decoding="async" data-reveal="" src="assets/monograma-claro.png" alt="Junior &amp; Diana" style="width: 88px; margin-bottom: 30px">
       <!-- El ampersand va en Cormorant italica, igual que en la portada: el de
            Pinyon es la forma italiana de "et" y no se lee como "&". Los dos
            sitios donde aparece el nombre de los novios deben usar el mismo. -->
@@ -519,7 +526,7 @@
   </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:430,&quot;height&quot;:932},&quot;fechaBoda&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;2026-11-07T19:00:00&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Datos&quot;},&quot;whatsapp&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;51999888777&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Datos&quot;},&quot;musicaSrc&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;assets/musica.mp3&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Música&quot;},&quot;cortaVideoEn&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:2.8,&quot;min&quot;:1.5,&quot;max&quot;:9,&quot;step&quot;:0.1,&quot;unit&quot;:&quot;s&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Apertura del sobre&quot;},&quot;invitadoNombre&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Nombre del invitado&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Invitado&quot;},&quot;invitadoPases&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:2,&quot;min&quot;:1,&quot;max&quot;:2,&quot;step&quot;:1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Invitado&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:430,&quot;height&quot;:932},&quot;fechaBoda&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;2026-11-07T19:00:00&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Datos&quot;},&quot;whatsapp&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;51999888777&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Datos&quot;},&quot;musicaSrc&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;assets/musica.mp3&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Música&quot;},&quot;cortaVideoEn&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:3.9,&quot;min&quot;:1.5,&quot;max&quot;:9,&quot;step&quot;:0.1,&quot;unit&quot;:&quot;s&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Apertura del sobre&quot;},&quot;invitadoNombre&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Nombre del invitado&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Invitado&quot;},&quot;invitadoPases&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:2,&quot;min&quot;:1,&quot;max&quot;:2,&quot;step&quot;:1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Invitado&quot;}}">
 class Component extends DCLogic {
   state = { now: Date.now(), musicOn: false, vol: 42, volAbierto: false, regalos: false, rsvp: { nombre: '', pax: '1', mensaje: '' }, abriendo: false, saliendo: false, entrado: false };
 
@@ -529,6 +536,7 @@ class Component extends DCLogic {
     this.setupReveal();
     this.setupParallax();
     this.prepararSobre();
+    this.prepararMapas();
     // Precarga el select de asistencia con la cantidad de pases del invitado,
     // y el nombre con el que ya viene en el link: la invitacion sabe a quien
     // esta saludando, pedirselo de nuevo sobra.
@@ -626,6 +634,28 @@ class Component extends DCLogic {
 
   prefiereMenosMovimiento() {
     try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; }
+  }
+
+  // Los mapas se piden bastante antes de asomar por el borde de la pantalla.
+  // Con loading="lazy" el navegador esperaba a tenerlos casi encima, y un embed
+  // de Google Maps no es una imagen: son varias peticiones y un mapa que armar,
+  // asi que llegaba tarde y el invitado veia el hueco gris unos segundos.
+  // Un margen de 1200px da tiempo de sobra sin cargarlos a quien nunca baja.
+  prepararMapas() {
+    const marcos = [].slice.call(document.querySelectorAll('iframe[data-mapa]'));
+    if (!marcos.length) return;
+    const cargar = (f) => {
+      if (f.getAttribute('src')) return;
+      f.setAttribute('src', f.getAttribute('data-mapa'));
+    };
+    if (typeof IntersectionObserver === 'undefined') {
+      marcos.forEach(cargar);
+      return;
+    }
+    const io = new IntersectionObserver((es) => es.forEach((e) => {
+      if (e.isIntersecting) { cargar(e.target); io.unobserve(e.target); }
+    }), { rootMargin: '1200px 0px' });
+    marcos.forEach((f) => io.observe(f));
   }
 
   // Fracción del cuadro del video (no de la pantalla) donde está el sello, calculada una vez a partir del ajuste original.
@@ -912,7 +942,7 @@ class Component extends DCLogic {
     return {
       abrirSobre: this.abrirSobre,
       mostrarSobre: !this.state.entrado,
-      sobreStyle: { position: 'fixed', inset: 0, zIndex: 70, background: '#F8F5F1', display: 'flex', justifyContent: 'center', animation: 'monoIn 1.1s ease both', transition: 'opacity .6s ease, transform .68s cubic-bezier(.3,.8,.2,1)', opacity: saliendo ? 0 : 1, transform: saliendo ? 'scale(1.04)' : 'none', pointerEvents: saliendo ? 'none' : 'auto' },
+      sobreStyle: { position: 'fixed', inset: 0, zIndex: 70, background: '#F8F5F1', display: 'flex', justifyContent: 'center', animation: 'monoIn 1.1s ease', transition: 'opacity .6s ease, transform .68s cubic-bezier(.3,.8,.2,1)', opacity: saliendo ? 0 : 1, transform: saliendo ? 'scale(1.04)' : 'none', pointerEvents: saliendo ? 'none' : 'auto' },
       // El hint y el nombre se van apenas se toca (abriendo pasa a true en el
       // mismo click), no a los 2000ms como antes.
       hintStyle: { position: 'absolute', left: 0, right: 0, bottom: '20px', zIndex: 5, margin: 0, textAlign: 'center', fontFamily: "'Cormorant Garamond', serif", textTransform: 'uppercase', fontSize: '12px', letterSpacing: '.28em', color: '#5F564E', transition: 'opacity .35s ease', opacity: abriendo ? 0 : 1, animation: abriendo ? 'none' : 'softPulse 3s ease-in-out infinite' },
