@@ -499,7 +499,6 @@
           <textarea rows="2" value="{{ mensaje }}" onChange="{{ setMensaje }}" placeholder="Unas líneas para los novios" style="width: 100%; box-sizing: border-box; padding: 12px 2px; border: none; border-bottom: 1px solid rgba(45,45,45,.2); background: transparent; font-family: var(--display); font-size: 20px; color: #24201C; outline: none; resize: none; transition: border-color .4s ease" style-focus="border-color: #8E4A56"></textarea>
         </label>
         <a class="sc" href="{{ waHref }}" target="_blank" rel="noopener" onClick="{{ enviarRSVP }}" style="{{ ctaStyle }}" style-hover="background: #5E2330; border-color: #5E2330; color: #F8F5F1; letter-spacing: .4em">{{ ctaLabel }}</a>
-        <p data-reveal="" style="margin: 28px 0 0; font-family: var(--display); font-style: italic; font-size: 19px; line-height: 1.7; color: #5F564E">Un evento para adultos está en camino. ¡Así que prepárense para una noche llena de diversión! Dejemos a los niños en casa esta vez.</p>
       </div>
       </sc-if>
 
@@ -516,6 +515,11 @@
         <p style="margin: 26px 0 0"><a href="#" onClick="{{ corregirRSVP }}" style="font-size: 13px; color: #A89B90; text-decoration: underline">Corregir mi respuesta</a></p>
       </div>
       </sc-if>
+
+      <!-- FUERA de los dos sc-if a proposito. Vivia dentro del div del formulario,
+           asi que al confirmar desaparecia con el: justo cuando mas importa que el
+           invitado lo lea. Es una regla del evento, no un pie del formulario. -->
+      <p data-reveal="" style="max-width: 380px; margin: 34px auto 0; position: relative; z-index: 2; font-family: var(--display); font-style: italic; font-size: 19px; line-height: 1.7; color: #5F564E">Un evento para adultos está en camino. ¡Así que prepárense para una noche llena de diversión! Dejemos a los niños en casa esta vez.</p>
     </section>
 
     <!-- Cierre: la foto final a sangre y el pie borgona pegado, sin corte de crema
