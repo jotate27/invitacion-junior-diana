@@ -599,6 +599,23 @@ function construirMensajeRSVP(d) {
 }
 // <<<RSVP_MSG_END>>>
 
+// <<<RSVP_PASES_START>>>
+// Una sola fuente para los pases del invitado, usada por componentDidMount (que
+// precarga el select) y por renderVals (que decide si se ofrece la opcion de 2).
+// Cuando eran dos calculos distintos divergian: con ?p=1 el select mostraba "1"
+// —el navegador cae a la primera opcion valida cuando el valor no tiene opcion—
+// pero el estado seguia en '2', asi que el mensaje decia "asistiremos 2 personas"
+// y eso mismo se registraba en el Sheet, sin que el invitado pudiera notarlo.
+// El ?p= del link manda; los props son solo el respaldo del editor de Design.
+function resolverPases(search, propsPases) {
+  var delLink = 0;
+  try { delLink = Number(new URLSearchParams(search).get('p')); } catch (e) {}
+  var n = delLink || Number(propsPases) || 2;
+  if (!isFinite(n)) n = 2;
+  return Math.min(2, Math.max(1, Math.round(n)));
+}
+// <<<RSVP_PASES_END>>>
+
 // El token vive tambien en este HTML publico, y no hay forma de evitarlo: esto
 // es una pagina estatica sin backend. Lo que protege la lista de invitados no
 // es que sea secreto sino que la accion rsvp del GAS solo sabe hacer appendRow
@@ -620,7 +637,7 @@ class Component extends DCLogic {
     // Precarga el select de asistencia con la cantidad de pases del invitado,
     // y el nombre con el que ya viene en el link: la invitacion sabe a quien
     // esta saludando, pedirselo de nuevo sobra.
-    const pasesInv = Math.min(2, Math.max(1, Number(this.props.invitadoPases || 2)));
+    const pasesInv = resolverPases(location.search, this.props.invitadoPases);
     let nombreInv = '';
     try { nombreInv = new URLSearchParams(location.search).get('n') || ''; } catch (e) {}
     this.setState((s) => ({ rsvp: Object.assign({}, s.rsvp, { pax: String(pasesInv), nombre: nombreInv }) }));
@@ -1100,7 +1117,7 @@ class Component extends DCLogic {
     const pad = (n) => String(n).padStart(2, '0');
     const r = this.state.rsvp;
     const tel = String(this.props.whatsapp || '51926981215').replace(/[^0-9]/g, '');
-    const pases = Number(new URLSearchParams(location.search).get('p')) || Number(this.props.invitadoPases || 2);
+    const pases = resolverPases(location.search, this.props.invitadoPases);
     // Una sola fuente para el texto y para la fila del Sheet: si divergieran,
     // el invitado veria una cosa en WhatsApp y quedaria registrada otra.
     const payload = this.construirPayloadRSVP();
