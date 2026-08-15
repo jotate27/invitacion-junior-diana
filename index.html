@@ -497,7 +497,7 @@
           <span class="sc" style="font-size: 12px; letter-spacing: .17em; color: #5F564E">Mensaje (opcional)</span>
           <textarea rows="2" value="{{ mensaje }}" onChange="{{ setMensaje }}" placeholder="Unas líneas para los novios" style="width: 100%; box-sizing: border-box; padding: 12px 2px; border: none; border-bottom: 1px solid rgba(45,45,45,.2); background: transparent; font-family: var(--display); font-size: 20px; color: #24201C; outline: none; resize: none; transition: border-color .4s ease" style-focus="border-color: #8E4A56"></textarea>
         </label>
-        <a class="sc" href="{{ waHref }}" target="_blank" rel="noopener" style="margin-top: 10px; padding: 18px 20px; background: #24201C; border: 1px solid #24201C; border-radius: 999px; text-align: center; font-size: 13px; letter-spacing: .17em; color: #F8F5F1; transition: background .5s ease, color .5s ease, letter-spacing .5s ease" style-hover="background: #5E2330; border-color: #5E2330; color: #F8F5F1; letter-spacing: .4em">{{ ctaLabel }}</a>
+        <a class="sc" href="{{ waHref }}" target="_blank" rel="noopener" onClick="{{ enviarRSVP }}" style="{{ ctaStyle }}" style-hover="background: #5E2330; border-color: #5E2330; color: #F8F5F1; letter-spacing: .4em">{{ ctaLabel }}</a>
         <p data-reveal="" style="margin: 28px 0 0; font-family: var(--display); font-style: italic; font-size: 19px; line-height: 1.7; color: #5F564E">Un evento para adultos está en camino. ¡Así que prepárense para una noche llena de diversión! Dejemos a los niños en casa esta vez.</p>
       </div>
     </section>
@@ -583,8 +583,16 @@ function construirMensajeRSVP(d) {
 }
 // <<<RSVP_MSG_END>>>
 
+// El token vive tambien en este HTML publico, y no hay forma de evitarlo: esto
+// es una pagina estatica sin backend. Lo que protege la lista de invitados no
+// es que sea secreto sino que la accion rsvp del GAS solo sabe hacer appendRow
+// sobre la hoja Confirmaciones: aunque alguien lo saque de aca, no alcanza a
+// Invitados ni a ninguna otra hoja.
+var RSVP_URL = 'https://script.google.com/macros/s/AKfycbz3W0GjB1ly5y9DChWev5kSP-ljFV-QNIqBOdZLTjQ5sL0pQL67IOXICpUqOzYSCP6o/exec';
+var RSVP_TOKEN = 'Mqehc0KuhqArVvsJ';
+
 class Component extends DCLogic {
-  state = { now: Date.now(), musicOn: false, vol: 42, volAbierto: false, regalos: false, rsvp: { nombre: '', pax: '1', mensaje: '' }, abriendo: false, saliendo: false, entrado: false };
+  state = { now: Date.now(), musicOn: false, vol: 42, volAbierto: false, regalos: false, rsvp: { nombre: '', pax: '1', mensaje: '' }, abriendo: false, saliendo: false, entrado: false, rsvpEnviado: false, rsvpRespuesta: '', rsvpNombre: '' };
 
   componentDidMount() {
     this.timer = setInterval(() => this.setState({ now: Date.now() }), 1000);
@@ -996,6 +1004,59 @@ class Component extends DCLogic {
   toggleVol = () => this.setState((s) => ({ volAbierto: !s.volAbierto }));
   toggleRegalos = () => this.setState((s) => ({ regalos: !s.regalos }));
 
+  linkParam(k) {
+    try { return new URLSearchParams(location.search).get(k) || ''; } catch (e) { return ''; }
+  }
+
+  construirPayloadRSVP() {
+    const r = this.state.rsvp;
+    const noAsiste = r.pax === 'no';
+    return {
+      action: 'rsvp',
+      token: RSVP_TOKEN,
+      nombreLink: this.linkParam('n'),
+      nombre: String(r.nombre || '').trim(),
+      pasesLink: Number(this.linkParam('p')) || 0,
+      respuesta: noAsiste ? 'No' : 'Si',
+      personas: noAsiste ? 0 : (Number(r.pax) || 1),
+      mensaje: String(r.mensaje || '').trim(),
+      origen: 'invitacion'
+    };
+  }
+
+  // sendBeacon y no fetch: apenas WhatsApp toma el foco, el navegador cancela
+  // cualquier peticion en vuelo y la confirmacion se pierde en silencio. El
+  // beacon queda encolado y se manda pase lo que pase. Sin Content-Type custom,
+  // asi no dispara preflight CORS contra Apps Script.
+  registrarRSVP(payload) {
+    try {
+      const body = JSON.stringify(payload);
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(RSVP_URL, new Blob([body], { type: 'text/plain;charset=UTF-8' }));
+      } else {
+        fetch(RSVP_URL, { method: 'POST', body: body, keepalive: true }).catch(function () {});
+      }
+    } catch (e) {}
+  }
+
+  guardarRSVPLocal(payload) {
+    try {
+      localStorage.setItem('jd_rsvp_v1', JSON.stringify({
+        respuesta: payload.respuesta, personas: payload.personas, nombre: payload.nombre, ts: Date.now()
+      }));
+    } catch (e) {}   // Safari en modo privado lanza al escribir
+  }
+
+  enviarRSVP = (e) => {
+    const payload = this.construirPayloadRSVP();
+    if (!payload.nombre) { if (e && e.preventDefault) e.preventDefault(); return; }
+    this.registrarRSVP(payload);
+    this.guardarRSVPLocal(payload);
+    // El <a> sigue navegando solo a WhatsApp: en iOS interceptarlo es la forma
+    // mas confiable de que el sistema NO abra la app.
+    this.setState({ rsvpEnviado: true, rsvpRespuesta: payload.respuesta, rsvpNombre: payload.nombre });
+  };
+
   set = (k) => (e) => {
     const v = e.target.value;
     this.setState((s) => ({ rsvp: Object.assign({}, s.rsvp, { [k]: v }) }));
@@ -1009,10 +1070,12 @@ class Component extends DCLogic {
     const r = this.state.rsvp;
     const tel = String(this.props.whatsapp || '51926981215').replace(/[^0-9]/g, '');
     const pases = Number(new URLSearchParams(location.search).get('p')) || Number(this.props.invitadoPases || 2);
-    const noAsiste = r.pax === 'no';
-    const respuesta = noAsiste ? 'No' : 'Si';
-    const personas = noAsiste ? 0 : (Number(r.pax) || 1);
-    const msg = construirMensajeRSVP({ nombre: r.nombre, respuesta: respuesta, personas: personas, mensaje: r.mensaje });
+    // Una sola fuente para el texto y para la fila del Sheet: si divergieran,
+    // el invitado veria una cosa en WhatsApp y quedaria registrada otra.
+    const payload = this.construirPayloadRSVP();
+    const noAsiste = payload.respuesta === 'No';
+    const msg = construirMensajeRSVP(payload);
+    const nombreOk = !!payload.nombre;
     const ctaLabel = noAsiste ? 'Enviar respuesta' : 'Confirmar asistencia';
     const abriendo = this.state.abriendo, saliendo = this.state.saliendo;
     return {
@@ -1034,6 +1097,17 @@ class Component extends DCLogic {
       ctaLabel: ctaLabel,
       setNombre: this.set('nombre'), setPax: this.set('pax'), setMensaje: this.set('mensaje'),
       waHref: 'https://wa.me/' + tel + '?text=' + encodeURIComponent(msg),
+      enviarRSVP: this.enviarRSVP,
+      // Sin nombre no hay a quien atribuir la confirmacion, asi que el CTA queda
+      // atenuado e inerte en vez de mandar una fila anonima al Sheet.
+      ctaStyle: {
+        marginTop: '10px', padding: '18px 20px',
+        background: '#24201C', border: '1px solid #24201C', borderRadius: '999px',
+        textAlign: 'center', fontSize: '13px', letterSpacing: '.17em', color: '#F8F5F1',
+        transition: 'background .5s ease, color .5s ease, letter-spacing .5s ease, opacity .3s ease',
+        opacity: nombreOk ? 1 : .45,
+        pointerEvents: nombreOk ? 'auto' : 'none'
+      },
       mostrarControles: this.state.entrado,
       musicOn: this.state.musicOn, musicOff: !this.state.musicOn,
       toggleMusic: this.toggleMusic,
