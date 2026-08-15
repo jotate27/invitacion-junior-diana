@@ -478,6 +478,7 @@
       <img loading="lazy" decoding="async" src="assets/ramo-inf-v2.png" alt="" aria-hidden="true" width="620" height="676" style="position: absolute; bottom: -8px; right: -18px; width: clamp(104px, 30vw, 132px); height: auto; opacity: .42; pointer-events: none; z-index: 1">
       <h2 data-reveal="" style="margin: 0 0 18px; font-family: var(--display); font-weight: 300; font-size: clamp(30px, 8.5vw, 40px); line-height: 1.2; color: #24201C">Nos encantaría<br>contar contigo</h2>
       <p data-reveal="" style="margin: 0 auto 42px; max-width: 32ch; font-size: 16px; line-height: 1.75; color: #5F564E">Por favor confirmar antes del 07 de septiembre de 2026.</p>
+      <sc-if value="{{ rsvpPendiente }}" hint-placeholder-val="{{ true }}">
       <div data-reveal="" style="max-width: 380px; margin: 0 auto; text-align: left; display: flex; flex-direction: column; gap: 26px">
         <label style="display: flex; flex-direction: column; gap: 10px">
           <span class="sc" style="font-size: 12px; letter-spacing: .17em; color: #5F564E">Nombre</span>
@@ -500,6 +501,21 @@
         <a class="sc" href="{{ waHref }}" target="_blank" rel="noopener" onClick="{{ enviarRSVP }}" style="{{ ctaStyle }}" style-hover="background: #5E2330; border-color: #5E2330; color: #F8F5F1; letter-spacing: .4em">{{ ctaLabel }}</a>
         <p data-reveal="" style="margin: 28px 0 0; font-family: var(--display); font-style: italic; font-size: 19px; line-height: 1.7; color: #5F564E">Un evento para adultos está en camino. ¡Así que prepárense para una noche llena de diversión! Dejemos a los niños en casa esta vez.</p>
       </div>
+      </sc-if>
+
+      <!-- Estado de cierre: usa el filete .rule con su .lozenge y la serif display
+           en cursiva, la gramatica ornamental que la pieza ya tiene. Sin componentes
+           ni ornamentos nuevos. El z-index 2 lo pone por encima de los ramos del
+           marco floral, que van en z-index 1. -->
+      <sc-if value="{{ rsvpEnviado }}" hint-placeholder-val="{{ false }}">
+      <div data-reveal="" style="max-width: 380px; margin: 0 auto; text-align: center; position: relative; z-index: 2">
+        <div class="rule" aria-hidden="true" style="color: rgba(94,35,48,.4); margin: 0 0 30px"><span class="lozenge"></span></div>
+        <p style="margin: 0 0 12px; font-family: var(--display); font-style: italic; font-weight: 300; font-size: clamp(24px, 6.5vw, 30px); line-height: 1.3; color: #24201C">{{ cierreTitulo }}</p>
+        <p style="margin: 0 0 30px; font-size: 16px; line-height: 1.75; color: #5F564E">{{ cierreDetalle }}</p>
+        <a class="sc" href="{{ waHref }}" target="_blank" rel="noopener" style="display: inline-block; font-size: 11px; letter-spacing: .17em; color: #8E4A56; text-decoration: none; border-bottom: 1px solid rgba(142,74,86,.3); padding-bottom: 3px">¿No se abrió WhatsApp? Escríbenos</a>
+        <p style="margin: 26px 0 0"><a href="#" onClick="{{ corregirRSVP }}" style="font-size: 13px; color: #A89B90; text-decoration: underline">Corregir mi respuesta</a></p>
+      </div>
+      </sc-if>
     </section>
 
     <!-- Cierre: la foto final a sangre y el pie borgona pegado, sin corte de crema
@@ -608,6 +624,14 @@ class Component extends DCLogic {
     let nombreInv = '';
     try { nombreInv = new URLSearchParams(location.search).get('n') || ''; } catch (e) {}
     this.setState((s) => ({ rsvp: Object.assign({}, s.rsvp, { pax: String(pasesInv), nombre: nombreInv }) }));
+    // Si ya confirmo antes, se le muestra su confirmacion y no un formulario
+    // vacio que lo haga dudar si mando algo.
+    try {
+      const prev = JSON.parse(localStorage.getItem('jd_rsvp_v1') || 'null');
+      if (prev && prev.respuesta) {
+        this.setState({ rsvpEnviado: true, rsvpRespuesta: prev.respuesta, rsvpNombre: prev.nombre || nombreInv });
+      }
+    } catch (e) {}
   }
 
   componentWillUnmount() {
@@ -1047,6 +1071,13 @@ class Component extends DCLogic {
     } catch (e) {}   // Safari en modo privado lanza al escribir
   }
 
+  corregirRSVP = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    // El log del Sheet es append-only: reenviar agrega una fila nueva y el
+    // dashboard se queda con la ultima por nombreLink.
+    this.setState({ rsvpEnviado: false });
+  };
+
   enviarRSVP = (e) => {
     const payload = this.construirPayloadRSVP();
     if (!payload.nombre) { if (e && e.preventDefault) e.preventDefault(); return; }
@@ -1098,6 +1129,16 @@ class Component extends DCLogic {
       setNombre: this.set('nombre'), setPax: this.set('pax'), setMensaje: this.set('mensaje'),
       waHref: 'https://wa.me/' + tel + '?text=' + encodeURIComponent(msg),
       enviarRSVP: this.enviarRSVP,
+      rsvpEnviado: this.state.rsvpEnviado,
+      rsvpPendiente: !this.state.rsvpEnviado,
+      corregirRSVP: this.corregirRSVP,
+      // Solo el primer token del nombre: lee como trato personal y no como
+      // nombre completo de registro.
+      cierreTitulo: (this.state.rsvpRespuesta === 'No' ? 'Gracias por avisarnos, ' : 'Gracias, ')
+        + String(this.state.rsvpNombre || '').trim().split(/\s+/)[0] + '.',
+      cierreDetalle: this.state.rsvpRespuesta === 'No'
+        ? 'Te vamos a extrañar.'
+        : 'Te esperamos el sábado 7 de noviembre.',
       // Sin nombre no hay a quien atribuir la confirmacion, asi que el CTA queda
       // atenuado e inerte en vez de mandar una fila anonima al Sheet.
       ctaStyle: {
